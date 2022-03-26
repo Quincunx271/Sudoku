@@ -2,15 +2,23 @@
 
 #include <type_traits>
 
+#include <sudoku/util/util.hpp>
+
 namespace sudoku {
 	namespace detail {
 		template <typename T>
 		struct type_switch_eval {
-			template <typename, typename P>
-			[[nodiscard]] constexpr type_switch_eval case_(P) const;
+			template <typename U, typename P>
+			[[nodiscard]] constexpr type_switch_eval case_( P) const;
+
+			template <typename U, typename P>
+			[[nodiscard]] constexpr type_switch_eval case_(type_t<U>, P) const;
 
 			template <typename>
 			constexpr T default_() const;
+
+			template <typename U>
+			constexpr T default_(type_t<U>) const;
 		};
 	}
 
@@ -22,6 +30,13 @@ namespace sudoku {
 	//                               .case_<int>(lt(val<5>))
 	//                               .case_<long>(gt(val<9>))
 	//                               .default_<float>());
+	//     static_assert(std::is_same_v<type, long>);
+	//
+	//     // Alternative interface (may be mixed):
+	//     using type = decltype(type_switch<10>()
+	//                               .case_(type<int>, lt(val<5>))
+	//                               .case_(type<long>, gt(val<9>))
+	//                               .default_(type<float>));
 	//     static_assert(std::is_same_v<type, long>);
 	//
 	// The value passed as the template parameter (`10` in the example) is passed to each
@@ -43,7 +58,14 @@ namespace sudoku {
 		[[nodiscard]] constexpr auto case_(P) const
 			-> std::conditional_t<P()(Val), detail::type_switch_eval<T>, type_switch>;
 
+		template <typename T, typename P>
+		[[nodiscard]] constexpr auto case_(type_t<T>, P) const
+			-> std::conditional_t<P()(Val), detail::type_switch_eval<T>, type_switch>;
+
 		template <typename T>
 		constexpr T default_() const;
+
+		template <typename T>
+		constexpr T default_(type_t<T>) const;
 	};
 }

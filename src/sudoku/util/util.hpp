@@ -1,5 +1,6 @@
 #pragma once
 
+#include <type_traits>
 #include <utility>
 
 namespace sudoku {
@@ -8,4 +9,10 @@ namespace sudoku {
 
 	template <auto V>
 	constexpr val_t<V> val;
+
+	template <typename T>
+	using type_t = std::type_identity<T>;
+
+	template <typename T>
+	constexpr type_t<T> type;
 }
