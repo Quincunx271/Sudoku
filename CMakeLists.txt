@@ -59,6 +59,8 @@ if(BUILD_TESTING)
 		add_executable("${name}" "${test}")
 		# TODO: update it with the actual Catch2 data.
 		target_link_libraries("${name}" PRIVATE sudoku-lib catch2-main)
+
+		add_test(NAME "${name}" COMMAND "${name}")
 	endforeach()
 endif()
 
