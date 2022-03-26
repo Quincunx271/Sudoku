@@ -99,3 +99,16 @@ TEMPLATE_LIST_TEST_CASE("set()", "", many_bitset_sizes)
 		}
 	}
 }
+
+TEMPLATE_TEST_CASE("bitset<0> guards against misuse", "", bitset<0>)
+{
+	// It should be valid to create a bitset<0>.
+	static constexpr TestType bits;
+
+	// But .get() and .set() cannot be used, because it's always out of bounds.
+	STATIC_REQUIRE_FALSE(requires { bits.get(0); });
+	STATIC_REQUIRE_FALSE(requires { bits.set(0, true); });
+
+	// .size() is okay.
+	CHECK(bits.size() == 0);
+}

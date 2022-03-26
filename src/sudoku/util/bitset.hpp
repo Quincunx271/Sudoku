@@ -37,7 +37,7 @@ namespace sudoku {
 	public:
 		constexpr bitset() = default;
 
-		constexpr void set(std::size_t index, bool value)
+		constexpr void set(std::size_t index, bool value) requires(N > 0) // index out of bounds
 		{
 			const auto [word_idx, bit_idx] = split_index(index);
 
@@ -47,7 +47,7 @@ namespace sudoku {
 			words[word_idx] = word_t(word & clear_mask) | set_mask;
 		}
 
-		constexpr bool get(std::size_t index) const
+		constexpr bool get(std::size_t index) const requires(N > 0) // index out of bounds
 		{
 			const auto [word_idx, bit_idx] = split_index(index);
 
