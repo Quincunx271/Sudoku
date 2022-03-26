@@ -1,6 +1,7 @@
 #include <sudoku/util/comparisons.hpp>
 
 #include <functional>
+#include <sudoku/util/util.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -94,4 +95,44 @@ TEST_CASE("All are transparent")
 	STATIC_REQUIRE(is_transparent_v<ge_t>);
 	STATIC_REQUIRE(is_transparent_v<eq_t>);
 	STATIC_REQUIRE(is_transparent_v<ne_t>);
+}
+
+TEST_CASE("Captured is default constructible when empty")
+{
+	using sudoku::val;
+	STATIC_REQUIRE(std::is_default_constructible_v<std::remove_cvref_t<decltype(lt(val<1>))>>);
+	STATIC_REQUIRE(std::is_default_constructible_v<std::remove_cvref_t<decltype(le(val<1>))>>);
+	STATIC_REQUIRE(std::is_default_constructible_v<std::remove_cvref_t<decltype(gt(val<1>))>>);
+	STATIC_REQUIRE(std::is_default_constructible_v<std::remove_cvref_t<decltype(ge(val<1>))>>);
+	STATIC_REQUIRE(std::is_default_constructible_v<std::remove_cvref_t<decltype(eq(val<1>))>>);
+	STATIC_REQUIRE(std::is_default_constructible_v<std::remove_cvref_t<decltype(ne(val<1>))>>);
+}
+
+TEST_CASE("Captured is NOT default constructible when not empty")
+{
+	STATIC_REQUIRE_FALSE(std::is_default_constructible_v<std::remove_cvref_t<decltype(lt(1))>>);
+	STATIC_REQUIRE_FALSE(std::is_default_constructible_v<std::remove_cvref_t<decltype(le(1))>>);
+	STATIC_REQUIRE_FALSE(std::is_default_constructible_v<std::remove_cvref_t<decltype(gt(1))>>);
+	STATIC_REQUIRE_FALSE(std::is_default_constructible_v<std::remove_cvref_t<decltype(ge(1))>>);
+	STATIC_REQUIRE_FALSE(std::is_default_constructible_v<std::remove_cvref_t<decltype(eq(1))>>);
+	STATIC_REQUIRE_FALSE(std::is_default_constructible_v<std::remove_cvref_t<decltype(ne(1))>>);
+}
+
+TEST_CASE("Captured is NOT default constructible when not default constructible even if empty")
+{
+	struct empty_t {
+		constexpr empty_t(int) { }
+	};
+	STATIC_REQUIRE_FALSE(
+		std::is_default_constructible_v<std::remove_cvref_t<decltype(lt(empty_t(1)))>>);
+	STATIC_REQUIRE_FALSE(
+		std::is_default_constructible_v<std::remove_cvref_t<decltype(le(empty_t(1)))>>);
+	STATIC_REQUIRE_FALSE(
+		std::is_default_constructible_v<std::remove_cvref_t<decltype(gt(empty_t(1)))>>);
+	STATIC_REQUIRE_FALSE(
+		std::is_default_constructible_v<std::remove_cvref_t<decltype(ge(empty_t(1)))>>);
+	STATIC_REQUIRE_FALSE(
+		std::is_default_constructible_v<std::remove_cvref_t<decltype(eq(empty_t(1)))>>);
+	STATIC_REQUIRE_FALSE(
+		std::is_default_constructible_v<std::remove_cvref_t<decltype(ne(empty_t(1)))>>);
 }

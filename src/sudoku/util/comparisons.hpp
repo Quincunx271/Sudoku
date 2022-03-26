@@ -28,9 +28,14 @@
 //  - is_transparent: they are transparent comparators like std::less<> is.
 //  - Totally ordered for pointers. It is defined behavior to compare pointers from different arrays
 //    using these functions; they will use the total ordering provided by std::less and friends.
+//  - Default constructible-friendly if empty. If `x` is empty and default constructible when
+//    calling `op(x)`, e.g. by calling `op(std::integral_constant<int, 10>())`, then the type of
+//    `op(x)` will also be default constructible. This can be used to "lift" the predicate to
+//    constexpr; see type_switch.hpp for an example.
 
 #pragma once
 
+#include <concepts>
 #include <functional>
 #include <type_traits>
 #include <utility>
@@ -54,12 +59,35 @@ namespace sudoku {
 		// less than 1.
 		template <template <typename...> class Fn>
 		struct curried_cmp_t {
+		private:
+			template <typename Rhs>
+			struct partial1_cmp_t {
+				constexpr partial1_cmp_t() requires(
+					std::is_default_constructible_v<Rhs>&& std::is_empty_v<Rhs>)
+					= default;
+
+				template <typename RhsFwd>
+					requires std::same_as<std::remove_cvref_t<RhsFwd>, Rhs>
+				constexpr partial1_cmp_t(RhsFwd&& rhs)
+					: rhs_(std::forward<RhsFwd>(rhs))
+				{ }
+
+				[[nodiscard]] constexpr auto operator()(const auto& lhs) const
+				{
+					return curried_cmp_t()(lhs, rhs_);
+				}
+
+			private:
+				[[no_unique_address]] Rhs rhs_;
+			};
+
+		public:
 			using is_transparent = void;
 
-			[[nodiscard]] constexpr auto operator()(auto rhs) const
+			template <typename Rhs>
+			[[nodiscard]] constexpr auto operator()(Rhs rhs) const
 			{
-				return
-					[rhs = std::move(rhs)](const auto& lhs) { return curried_cmp_t()(lhs, rhs); };
+				return partial1_cmp_t<Rhs>(std::move(rhs));
 			}
 
 			template <typename Lhs, typename Rhs>
